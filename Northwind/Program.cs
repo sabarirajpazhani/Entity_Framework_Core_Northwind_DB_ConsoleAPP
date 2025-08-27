@@ -497,7 +497,7 @@ namespace Northwind
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine("----------------------------------------------------------------------------");
                             Console.ResetColor();
-                            Console.WriteLine($"| {"CustomerID",-6} | {"Com Name",-40} | {"LastOrderDate",-12} |");
+                            Console.WriteLine($"| {"CustomerID",-6} | {"Comp",-40} | {"LastOrderDate",-12} |");
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine("----------------------------------------------------------------------------");
                             Console.ResetColor();
@@ -594,6 +594,110 @@ namespace Northwind
                             Console.ResetColor();
 
                             break;
+
+                        case 11:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("11.\tFind the top 3 most ordered products (by total quantity sold). Output: ProductID | ProductName | TotalQuantitySold");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var topThreeProduct = context.Products.Include(x => x.OrderDetails).Select(x => new
+                            {
+                                ProductID = x.ProductId,
+                                ProductName = x.ProductName,
+                                TotalQuantitySold = x.OrderDetails.Sum(x => x.Quantity)
+                            }).OrderByDescending(x=>x.TotalQuantitySold).Take(3);
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ProductID",-6} | {"ProductName",-40} | {"TotalQuantitySold",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in topThreeProduct)
+                            {
+                                Console.WriteLine($"| {p.ProductID,-6} | {p.ProductName,-40} | {p.TotalQuantitySold,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            break;
+
+                        case 12:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("12.\tList products along with their supplier name and category name. Output: ProductID | ProductName | SupplierName | CategoryName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var productSupplier = context.Products.Select(x => new
+                            {
+                                ProductID = x.ProductId,
+                                ProductName = x.ProductName,
+                                SupplierName = x.Supplier.CompanyName,
+                                CategoryName = x.Category.CategoryName
+                            });
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ProductID",-10} | {"ProductName",-40} | {"SupplierName",-40} | {"CategoryName",-25} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in productSupplier)
+                            {
+                                Console.WriteLine($"| {p.ProductID,-10} | {p.ProductName,-40} | {p.SupplierName,-40} | {p.CategoryName,-25} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+
+                            break;
+
+                        case 13:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("13.\tDisplay all products where UnitPrice > Category Average Price. Output: ProductID | ProductName | UnitPrice | CategoryAverage");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var productsAvgUnitPrice = context.Products.Select(x => new
+                            {
+                                ProductID = x.ProductId,
+                                ProductName = x.ProductName,
+                                CategoryAverage = x.Category.Products.Average(x => x.UnitPrice),
+                                UnitPrice = x.UnitPrice
+                            }).Where(x=>x.UnitPrice>x.CategoryAverage);
+
+                            Console.WriteLine(productsAvgUnitPrice.Count());
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ProductID",-10} | {"ProductName",-40} | {"Unitpirce",-40} | {"CategoryAverage",-25} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in productsAvgUnitPrice)
+                            {
+                                Console.WriteLine($"| {p.ProductID,-10} | {p.ProductName,-40} | {p.UnitPrice,-40} | {p.CategoryAverage,-25} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        
                     }
 
                 }
