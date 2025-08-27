@@ -763,6 +763,99 @@ namespace Northwind
                             Console.ResetColor();
 
                             break;
+
+                        case 16:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("16.\tFind employees who share the same territory. Output: Employee1 | Employee2 | TerritoryName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            //var employeesSameTerritory =
+                            //                        from et1 in context.EmployeeTerritories
+                            //                        join et2 in context.EmployeeTerritories
+                            //                            on et1.TerritoryId equals et2.TerritoryId
+                            //                        join t in context.Territories
+                            //                            on et1.TerritoryId equals t.TerritoryId
+                            //                        join e1 in context.Employees
+                            //                            on et1.EmployeeId equals e1.EmployeeId
+                            //                        join e2 in context.Employees
+                            //                            on et2.EmployeeId equals e2.EmployeeId
+                            //                        where et1.EmployeeId < et2.EmployeeId
+                            //                        select new
+                            //                        {
+                            //                            Employee1 = e1.FirstName + " " + e1.LastName,
+                            //                            Employee2 = e2.FirstName + " " + e2.LastName,
+                            //                            TerritoryName = t.TerritoryDescription
+                            //                        };
+
+                            break;
+
+                        case 17:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("17.\tDisplay each employee with the number of distinct customers they served. Output: EmployeeID | EmployeeName | DistinctCustomers");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var employeeCustomer = context.Employees.Select(x => new
+                            {
+                                EmployeeID = x.EmployeeId,
+                                EmployeeName = x.FirstName + " " + x.LastName,
+                                DistinctCustomers = x.Orders.Select(x => x.CustomerId).Distinct().Count()
+                            });
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"EmployeeID",-6} | {"EmployeeName",-40} | {"DistinctCustomers",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in employeeCustomer)
+                            {
+                                Console.WriteLine($"| {p.EmployeeID,-6} | {p.EmployeeName,-40} | {p.DistinctCustomers,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 18:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("18.\tList employees along with the first order they ever handled. Output: EmployeeID | EmployeeName | FirstOrderDate");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var employeeOrderHandle = context.Employees.Select(x => new
+                            {
+                                EmployeeID = x.EmployeeId,
+                                EmployeeName = x.FirstName + " " + x.LastName,
+                                FirstOrderDate = x.Orders.OrderBy(x => x.OrderDate).Select(x=>x.OrderDate).FirstOrDefault()
+                            });
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"EmployeeID",-6} | {"EmployeeName",-40} | {"FirstOrderDate",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in employeeOrderHandle)
+                            {
+                                Console.WriteLine($"| {p.EmployeeID,-6} | {p.EmployeeName,-40} | {p.FirstOrderDate,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            break;
+
                         
                     }
 
