@@ -697,6 +697,39 @@ namespace Northwind
 
                             break;
 
+                        case 14:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("14.\tList employees with the total sales amount they handled. Output: EmployeeID | EmployeeName | TotalSales");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var employeeSales = context.Employees.Select(x => new
+                            {
+                                EmployeeID = x.EmployeeId,
+                                EmployeeName = x.FirstName + " " + x.LastName,
+                                TotalSales = x.Orders.Select(x => x.OrderDetails.Sum(x => x.UnitPrice * x.Quantity)).Sum()
+                            });
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"EmployeeID",-6} | {"EmployeeName",-40} | {"TotalSales",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in employeeSales)
+                            {
+                                Console.WriteLine($"| {p.EmployeeID,-6} | {p.EmployeeName,-40} | {p.TotalSales,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            break;
+                            break;
+
                         
                     }
 
