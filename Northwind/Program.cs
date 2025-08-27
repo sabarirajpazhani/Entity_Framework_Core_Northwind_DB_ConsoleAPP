@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Northwind.Models;
 using System.Net.Sockets;
 
@@ -61,6 +62,7 @@ namespace Northwind
                         Console.ResetColor();
                         goto choice;
                     }
+                   
 
                     switch (Choice)
                     {
@@ -73,7 +75,6 @@ namespace Northwind
                             Console.WriteLine();
                         customerIDList:
                             string _CustomerID = ""; //Customer ID
-                            var transaction = context.Database.BeginTransaction();
                             try
                             {
                                 try
@@ -149,7 +150,7 @@ namespace Northwind
                                     OrderDetails = new List<OrderDetail>(),
                                 };
 
-                                //var OrdersDetails = 
+                            //var OrdersDetails = 
 
                             OrderDetailsMain:
                             productID:
@@ -198,7 +199,7 @@ namespace Northwind
                                     goto productID;
                                 }
 
-                                decimal? _UnitPrice = context.Products.Where(a=>a.ProductId==_ProductID).Select(a => a.UnitPrice).First();
+                                decimal? _UnitPrice = context.Products.Where(a => a.ProductId == _ProductID).Select(a => a.UnitPrice).First();
 
                             quantity:
                                 Console.ForegroundColor = ConsoleColor.Green;
@@ -206,10 +207,10 @@ namespace Northwind
                                 Console.ResetColor();
                                 short _Quantity = short.Parse(Console.ReadLine());
 
-                                if (context.Products.Where(a=>a.ProductId==_ProductID).Any(a => a.UnitsInStock < _Quantity))
+                                if (context.Products.Where(a => a.ProductId == _ProductID).Any(a => a.UnitsInStock < _Quantity))
                                 {
                                     Console.ForegroundColor = ConsoleColor.Red;
-                                    Console.WriteLine($"We have Quantity for {_ProductID} is {context.Products.Where(a => a.ProductId == _ProductID).Select(a=>a.UnitsInStock).FirstOrDefault()}");
+                                    Console.WriteLine($"We have Quantity for {_ProductID} is {context.Products.Where(a => a.ProductId == _ProductID).Select(a => a.UnitsInStock).FirstOrDefault()}");
                                     Console.ResetColor();
 
                                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -259,7 +260,6 @@ namespace Northwind
 
                                     context.Orders.Add(order);
                                     context.SaveChanges();
-                                    transaction.Commit();
 
                                     Console.WriteLine();
                                     Console.ForegroundColor = ConsoleColor.Magenta;
@@ -270,34 +270,332 @@ namespace Northwind
                                 }
                                 else
                                 {
-                                    Console.ForegroundColor = ConsoleColor.Blue;
+                                    Console.ForegroundColor = ConsoleColor.Red;
                                     Console.WriteLine("Pease Enter valid Decision! Please");
                                     Console.ResetColor();
                                     goto confirmDecision;
                                 }
                             }
 
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
-                                transaction.Rollback();
                                 Console.ForegroundColor = ConsoleColor.Red;
-                                Console.WriteLine("Something Went Wrong! try Again : "+ex.Message);
+                                Console.WriteLine("Something Went Wrong! try Again : " + ex.Message);
                                 Console.ResetColor();
                                 goto Main;
                             }
                             break;
 
                         case 2:
+                        case2Main:
+                            using var transaction = context.Database.BeginTransaction();
+                            try
+                            {
+                                Console.WriteLine();
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("2.\tCreate new category with multiple products");
+                                Console.ResetColor();
+                                Console.WriteLine();
+
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("Enter the Product Category Name: ");
+                                Console.ResetColor();
+                                string _CategoryName = Console.ReadLine();
+
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("Enter the Category Description: ");
+                                Console.ResetColor();
+                                string _CategoryDescription = Console.ReadLine();
+
+                                Category category = new Category()
+                                {
+                                    CategoryName = _CategoryName,
+                                    Description = _CategoryDescription,
+                                    Products = new List<Product>()
+                                };
+
+                            addProduct:
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("Enter the Product Name: ");
+                                Console.ResetColor();
+                                string _ProductName = Console.ReadLine();
+
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("Enter the product Detail for Quantity per unit: ");
+                                Console.ResetColor();
+                                string _QuantityPerUnit = Console.ReadLine();
+
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("Enter the Product Unit Price: ");
+                                Console.ResetColor();
+                                decimal _UnitPrices = decimal.Parse(Console.ReadLine());
+
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write("Enter the Unit Stock: ");
+                                Console.ResetColor();
+                                short _UnitsInStock = short.Parse(Console.ReadLine());
+
+                                Product newProduct = new Product()
+                                {
+                                    ProductName = _ProductName,
+                                    Category = category,
+                                    QuantityPerUnit = _QuantityPerUnit,
+                                    UnitPrice = _UnitPrices,
+                                    UnitsInStock = _UnitsInStock,
+                                    Discontinued = false
+                                };
+
+                                category.Products.Add(newProduct);
+
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.Write("Do you want to Add another Product? (Y/N): ");
+                                Console.ResetColor();
+                                char chD = char.Parse(Console.ReadLine());
+                                if (chD == 'y' || chD == 'Y')
+                                {
+                                    goto addProduct;
+                                }
+
+                                context.Categories.Add(category);
+                                context.SaveChanges();
+                                transaction.Commit();
+
+                                Console.ForegroundColor = ConsoleColor.Magenta;
+                                Console.WriteLine("Category & Products have been successfully added!");
+                                Console.ResetColor();
+                                Console.WriteLine();
+
+                                var categoryProducts = context.Products
+                                                              .Where(p => p.CategoryId == category.CategoryId)
+                                                              .Select(p => new
+                                                              {
+                                                                  CategoryID = p.CategoryId,
+                                                                  CategoryName = p.Category.CategoryName,
+                                                                  ProductID = p.ProductId,
+                                                                  ProductName = p.ProductName,
+                                                                  UnitPrice = p.UnitPrice
+                                                              })
+                                                              .ToList();
+
+                                Console.WriteLine($"CategoryID: {category.CategoryId}");
+                                Console.WriteLine($"CategoryName: {category.CategoryName}");
+
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine("----------------------------------------------------------------------------");
+                                Console.ResetColor();
+                                Console.WriteLine($"| {"ProductID",-6} | {"Product Name",-40} | {"Unit Price",-12} |");
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine("----------------------------------------------------------------------------");
+                                Console.ResetColor();
+
+                                foreach (var p in categoryProducts)
+                                {
+                                    Console.WriteLine($"| {p.ProductID,-6} | {p.ProductName,-40} | {p.UnitPrice,-12} |");
+                                }
+
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine("----------------------------------------------------------------------------");
+                                Console.ResetColor();
+                            }
+                            catch (Exception ex)
+                            {
+                                transaction.Rollback();  
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Something went wrong! Please try again. Error: " + ex.Message);
+                                Console.ResetColor();
+                                goto case2Main;
+                            }
+                            break;
+
+                        case 6:
                             Console.WriteLine();
                             Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("2.\tCreate new category with multiple products - get all details from console - Output: CategoryId | CategoryName | ProductId | ProdutName | UnitPrice");
+                            Console.WriteLine("6.\tFind customers who placed orders in 1997 but not in 1998. Output: CustomerID | CompanyName");
                             Console.ResetColor();
                             Console.WriteLine();
 
+                            var customerYear = context.Customers.Where(a => a.Orders.Any(a => a.OrderDate.Value.Year == 1997) && !a.Orders.Any(a => a.OrderDate.Value.Year == 1998)).
+                                Select(x => new
+                                {
+                                    CustomerId = x.CustomerId,
+                                    CompanyName = x.CompanyName
+                                }).Distinct();
+
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"CustomerID",-6} | {"CustomerName",-40} | ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in customerYear)
+                            {
+                                Console.WriteLine($"| {p.CustomerId,-10} | {p.CompanyName,-40} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 7:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("7.\tList customers and their most recent order date. Output: CustomerID | CompanyName | LastOrderDate");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var customerRecentOrder = context.Customers.Include(a => a.Orders).Select(x => new
+                            {
+                                CustomerID = x.CustomerId,
+                                CustomerName = x.CompanyName,
+                                LastOrderDate = x.Orders.OrderByDescending(a => a.OrderDate).Select(x=>x.OrderDate).FirstOrDefault()
+                            });
+
+                            Console.WriteLine(customerRecentOrder.Count());
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"CustomerID",-6} | {"Com Name",-40} | {"LastOrderDate",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in customerRecentOrder)
+                            {
+                                Console.WriteLine($"| {p.CustomerID,-6} | {p.CustomerName,-40} | {p.LastOrderDate,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 8:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("8.\tShow all customers whose total order value exceeds 50000. Output: CustomerID | CompanyName | TotalOrderValue");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                         
+                            var customrTotal = context.Customers.Include(a => a.Orders).Select(x => new
+                            {
+                                CustomerID = x.CustomerId,
+                                CustomerName = x.CompanyName,
+                                TotalOrderValue = x.Orders.Join(context.OrderDetails,
+                                                           o => o.OrderId,
+                                                           od => od.OrderId,
+                                                           (o, od) => new { o, od }).Sum(x => x.od.UnitPrice * x.od.Quantity * (1 - (decimal)x.od.Discount))
+                            }).Where(x => x.TotalOrderValue>50000);
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"CustomerID",-6} | {"Com Name",-40} | {"LastOrderDate",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in customrTotal)
+                            {
+                                Console.WriteLine($"| {p.CustomerID,-6} | {p.CustomerName,-40} | {p.TotalOrderValue,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 9:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("9.\tList each category with the average unit price of products. Output: CategoryName | AveragePrice");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var averageCategory = context.Categories.Select(x => new
+                            {
+                                CategoryName = x.CategoryName,
+                                AveragePrice = x.Products.Average(x => x.UnitPrice)
+                            });
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"CustomerName",-30} | {"Average",-40} | ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in averageCategory)
+                            {
+                                Console.WriteLine($"| {p.CategoryName,-30} | {p.AveragePrice,-40} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 10:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("10.\tShow products that have never been ordered. Output: ProductID | ProductName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            //var productsNotOrdered = context.Products.Include(x => x.OrderDetails)
+                            //                         .Where(c => context.OrderDetails.Any(x => x.ProductId == c.ProductId))
+                            //                         .Select(x => new
+                            //                         {
+                            //                             ProductID = x.ProductId,
+                            //                             ProductName = x.ProductName
+                            //                         });
+
+                            var productsNotOrdered = from p in context.Products
+                                                     join o in context.OrderDetails on p.ProductId equals o.ProductId into gj
+                                                     from j in gj.DefaultIfEmpty()
+                                                     where (j == null)
+                                                     select new
+                                                     {
+                                                         ProductID = p.ProductId,
+                                                         ProductName = p.ProductName
+                                                     };
+
+
+
+
+
+
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ProductID",-30} | {"ProductName",-40} | ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in productsNotOrdered)
+                            {
+                                Console.WriteLine($"| {p.ProductID,-30} | {p.ProductName,-40} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
 
                             break;
                     }
-                    
+
                 }
             }
         }
