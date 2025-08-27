@@ -856,7 +856,42 @@ namespace Northwind
                             Console.ResetColor();
                             break;
 
-                        
+                        case 19:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("19.\tFor each shipper, calculate the average delivery time (ShippedDate – OrderDate). Output: ShipperName | AvgDeliveryDays");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+
+                            var avgDeliveryTime =from o in context.Orders
+                                                 where o.ShippedDate != null && o.OrderDate != null
+                                                 group o by o.ShipViaNavigation.CompanyName into g
+                                                 select new
+                                                 {
+                                                    ShipperName = g.Key,
+                                                    AvgDeliveryDays = g.Average(x => EF.Functions.DateDiffDay(x.OrderDate.Value, x.ShippedDate.Value))
+                                                 };
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ShipperName",-40} | {"AvgDeliveryDays",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in avgDeliveryTime)
+                            {
+                                Console.WriteLine($"| {p.ShipperName,-40} | {p.AvgDeliveryDays,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+
+                            break;
                     }
 
                 }
