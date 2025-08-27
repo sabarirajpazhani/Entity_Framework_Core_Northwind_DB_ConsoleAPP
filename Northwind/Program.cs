@@ -730,6 +730,39 @@ namespace Northwind
                             break;
                             break;
 
+                        case 15:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("15.\tShow the employee who handled the most orders in 1997. Output: EmployeeID | EmployeeName | OrdersHandled");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var employeeOrders = context.Employees.Select(x => new
+                            {
+                                EmployeeID = x.EmployeeId,
+                                EmployeeName = x.FirstName + " " + x.LastName,
+                                Orderhandled = x.Orders.Where(x=>x.OrderDate.Value.Year==1997).Count()
+                            }).OrderByDescending(x=>x.Orderhandled).Take(1);
+
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"EmployeeID",-6} | {"EmployeeName",-40} | {"OrdersHandled",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in employeeOrders)
+                            {
+                                Console.WriteLine($"| {p.EmployeeID,-6} | {p.EmployeeName,-40} | {p.Orderhandled,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
                         
                     }
 
