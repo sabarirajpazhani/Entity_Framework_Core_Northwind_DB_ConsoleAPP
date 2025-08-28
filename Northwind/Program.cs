@@ -885,10 +885,336 @@ namespace Northwind
                             {
                                 Console.WriteLine($"| {p.ShipperName,-40} | {p.AvgDeliveryDays,-12} |");
                             }
+                             
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+
+                            break;
+
+                        case 20:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("20.\tList orders that took more than 30 days to deliver. Output: OrderID | CustomerName | DaysTaken");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var orderDeliver = context.Orders.Select(x => new
+                            {
+                                OrderID = x.OrderId,
+                                CustomerName = x.Customer.CompanyName,
+                                DaysTaken = EF.Functions.DateDiffDay(x.OrderDate.Value, x.ShippedDate.Value)
+                            }).Where(x=>x.DaysTaken>30);
+
 
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine("----------------------------------------------------------------------------");
                             Console.ResetColor();
+                            Console.WriteLine($"| {"OrderID",-6} | {"CustomerName",-40} | {"DaysTaken",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in orderDeliver)
+                            {
+                                Console.WriteLine($"| {p.OrderID,-6} | {p.CustomerName,-40} | {p.DaysTaken,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 21:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("21.\tFind the top shipper based on the number of orders shipped. Output: ShipperName | OrdersShipped");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var numberOfShipper = context.Shippers.Select(x => new
+                            {
+                                ShipperName = x.CompanyName,
+                                Ordershipped = x.Orders.Select(x=>x.ShipVia).Count()
+                            }).OrderByDescending(x=>x.Ordershipped).Take(1);
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ShipperName",-6} | {"OrderShipped",-40} | ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in numberOfShipper)
+                            {
+                                Console.WriteLine($"| {p.ShipperName,-10} | {p.Ordershipped,-40} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+
+                            break;
+
+                        case 22:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("22.\tShow the top employee per year based on total sales. Output: Year | EmployeeName | TotalSales");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            //var topEmployeeSales = context.Employees.Select(x => new
+                            //{
+                            //    Years = x.Orders.Select(x=>x.OrderDate.Value.Year).FirstOrDefault(),
+                            //    EmployeeName = x.FirstName + " " + x.LastName,
+                            //    TotalSales = x.Orders.SelectMany(x=>x.OrderDetails).Sum(x=>x.UnitPrice*x.Quantity*(1-(decimal)x.Discount))
+
+                            //});
+
+                            //var topEmployeeSales = context.Employees.SelectMany(e => e.Orders.GroupBy(x => x.OrderDate.Value.Year).
+                            //                       Select(x => new
+                            //                       {
+                            //                           Years = x.Key,
+                            //                           EmployeeName = e.FirstName + " " + e.LastName,
+                            //                           TotalSales = x.SelectMany(x => x.OrderDetails).Sum(x => x.UnitPrice * x.Quantity * (1 - (decimal)x.Discount))
+                            //                       }));
+
+
+                            var topEmployeeSales = context.Employees
+                                                .Join(context.Orders,
+                                                      e => e.EmployeeId,
+                                                      o => o.EmployeeId,
+                                                      (e, o) => new { e, o })
+                                                .Join(context.OrderDetails,
+                                                      eo => eo.o.OrderId,
+                                                      od => od.OrderId,
+                                                      (eo, od) => new { eo, eo.e, od }).GroupBy(x => x.od.Order.OrderDate.Value.Year).
+                                                Select(x => new
+                                                {
+                                                    Year = x.Key,
+                                                    EmployeeName = x.FirstOrDefault().eo.e.FirstName + " " + x.FirstOrDefault().eo.e.LastName,
+                                                    TotalSales = x.Sum(x => x.od.UnitPrice * x.od.Quantity * (1 - (decimal)x.od.Discount))
+                                                });
+
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"Year",-6} | {"EmployeeName",-40} | {"TotalSales",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in topEmployeeSales)
+                            {
+                                Console.WriteLine($"| {p.Year,-6} | {p.EmployeeName,-40} | {p.TotalSales,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+
+                            break;
+
+                        case 23:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine(" 23.\tFind all products that were ordered by every customer. Output: ProductID | ProductName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            //var productsOrders = (from c in context.Customers
+                            //                     join o in context.Orders on c.CustomerId equals o.CustomerId
+                            //                     join od in context.OrderDetails on o.OrderId equals od.OrderId
+                            //                     join p in context.Products on od.ProductId equals p.ProductId into g
+                            //                     from j in g.DefaultIfEmpty()
+                            //                     where (j != null)
+                            //                     select new
+                            //                     {
+                            //                         ProductID = j.ProductId,
+                            //                         ProductName = j.ProductName
+                            //                     }).Distinct();
+
+                            var productsOrders = from p in context.Products
+                                                 let productCount = (from od in context.OrderDetails
+                                                                     join o in context.Orders on od.OrderId equals o.OrderId
+                                                                     where od.ProductId == p.ProductId
+                                                                     select o.CustomerId).Distinct().Count()
+                                                 where productCount == context.Customers.Count()
+                                                 select new
+                                                 {
+                                                     ProductID = p.ProductId,
+                                                     ProductName = p.ProductName
+                                                 };
+
+
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ProductID",-30} | {"ProductName",-40} | ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in productsOrders)
+                            {
+                                Console.WriteLine($"| {p.ProductID,-30} | {p.ProductName,-40} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+
+
+
+                            break;
+
+                        case 24:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("24.\tFind suppliers who supply more than 5 products. Output: SupplierID | SupplierName | ProductCount");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var supplierProduct = context.Suppliers.Select(x => new
+                            {
+                                SupplierID = x.SupplierId,
+                                SupplierName = x.CompanyName,
+                                ProductCount = x.Products.Count()
+                            }).Where(x => x.ProductCount > 5);
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"SupplierID",-6} | {"SupplierName",-40} | {"ProductCount",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in supplierProduct)
+                            {
+                                Console.WriteLine($"| {p.SupplierID,-6} | {p.SupplierName,-40} | {p.ProductCount,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 25:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("25.\tList the customer(s) with the single highest order value. Output: CustomerName | OrderID | OrderValue");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var singleOrderValue = context.Orders.Select(x => new
+                            {
+                                CustomerName = x.Customer.CompanyName,
+                                OrderID = x.OrderId,
+                                OrderValue = x.OrderDetails.Sum(x => x.UnitPrice * x.Quantity * (1 - (decimal)x.Discount))
+                            }).OrderByDescending(x=>x.OrderValue).Take(1);
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"CustomerName",-6} | {"OrderID",-40} | {"OrderValue",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in singleOrderValue)
+                            {
+                                Console.WriteLine($"| {p.CustomerName,-6} | {p.OrderID,-40} | {p.OrderValue,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            break;
+
+                        case 26:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("26.\tList customers who have ordered all products in a given category (e.g., Beverages). Output: CustomerName | CategoryName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                        categoryID:
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("-------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine(" CategoryID                CategoryName                 ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("-------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var c in context.Categories)
+                            {
+                                Console.WriteLine($" {c.CategoryId}            {c.CategoryName} ");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("-------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Choose the Category ID :");
+                            Console.ResetColor();
+                            int cId = int.Parse(Console.ReadLine());
+
+                            if(!context.Categories.Any(x=>x.CategoryId == cId))
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Category ID not Found Please Re-Enter the Category ID");
+                                Console.ResetColor();
+
+                                
+                                goto categoryID;
+                            }
+                            int CproductCount = (from c in context.Categories join p in context.Products on c.CategoryId equals p.CategoryId where c.CategoryId == cId select c).Count();
+
+                            var customerOrders = from cu in context.Customers
+                                                 join o in context.Orders on cu.CustomerId equals o.CustomerId
+                                                 join od in context.OrderDetails on o.OrderId equals od.OrderId
+                                                 join p in context.Products on od.ProductId equals p.ProductId
+                                                 where p.CategoryId == cId
+                                                 group p by new { cu.CustomerId, cu.CompanyName } into g
+                                                 where g.Select(x => x.ProductId).Distinct().Count() == CproductCount
+                                                 select new
+                                                 {
+                                                     CustomerName = g.Key.CompanyName,
+                                                     CategoryName = context.Categories.Where(c => c.CategoryId == cId).Select(x => x.CategoryName).FirstOrDefault()
+                                                 };
+
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"CustomerName",-30} | {"CategoryName",-40} | ");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in customerOrders)
+                            {
+                                Console.WriteLine($"| {p.CustomerName,-30} | {p.CategoryName,-40} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
 
 
                             break;
