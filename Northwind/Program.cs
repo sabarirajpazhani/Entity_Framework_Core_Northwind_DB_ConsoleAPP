@@ -407,6 +407,126 @@ namespace Northwind
                             }
                             break;
 
+                        case 3:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("3.\tAdd a new employee with manager (both should be new) - Display ManagerId | ManagerName | EmployeeId | EmployeeName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Enter Manager Name: ");
+                            Console.ResetColor();
+                            string managerName = Console.ReadLine();
+
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Enter Employee Name: ");
+                            Console.ResetColor();
+                            string employeeName = Console.ReadLine();
+
+                            var manager = new Employee
+                            {
+                                FirstName = managerName,
+                                LastName = ""
+                            };
+                            context.Employees.Add(manager);
+                            context.SaveChanges();
+
+                            var employee = new Employee
+                            {
+                                FirstName = employeeName,
+                                LastName = "",
+                                ReportsTo = manager.EmployeeId
+                            };
+                            context.Employees.Add(employee);
+                            context.SaveChanges();
+
+                            Console.WriteLine($"ManagerId: {manager.EmployeeId} | ManagerName: {manager.FirstName} | " + $"EmployeeId: {employee.EmployeeId} | EmployeeName: {employee.FirstName}");
+
+                        break;
+
+                        case 4:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("4.\tAdd a new employee to existing manager - Display ManagerId | ManagerName | EmployeeId | EmployeeName");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                        manager:
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Enter Existing Manager ID: ");
+                            Console.ResetColor();
+                            int managerId = Convert.ToInt32(Console.ReadLine());
+
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Enter Employee Name: ");
+                            Console.ResetColor();
+                            string _employeeName = Console.ReadLine();
+
+                            var _manager = context.Employees.Find(managerId);
+
+                            if (_manager == null)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Manager not found.");
+                                Console.ResetColor();
+                                goto manager;
+                            }
+                            else
+                            {
+                                var _employee = new Employee
+                                {
+                                    FirstName = _employeeName,
+                                    LastName = "",
+                                    ReportsTo = _manager.EmployeeId
+                                };
+                                context.Employees.Add(_employee);
+                                context.SaveChanges();
+
+                                Console.WriteLine($"ManagerId: {_manager.EmployeeId} | ManagerName: {_manager.FirstName} | " +
+                                                  $"EmployeeId: {_employee.EmployeeId} | EmployeeName: {_employee.FirstName}");
+                            }
+
+                            break;
+
+                        case 5:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("5.\tUpdate existing emplyee to new manager - Get ManagerId and EmployeeId in console");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                        employeeID:
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Enter Employee ID to Update: ");
+                            Console.ResetColor();
+                            int empId = Convert.ToInt32(Console.ReadLine());
+
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("Enter New Manager ID: ");
+                            Console.ResetColor();
+                            int newManagerId = Convert.ToInt32(Console.ReadLine());
+
+                            var employeeID = context.Employees.Find(empId);
+                            var managerID = context.Employees.Find(newManagerId);
+
+                            if (employeeID == null || managerID == null)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Employee or Manager not found.");
+                                Console.ResetColor();
+                                goto employeeID;
+                            }
+                            else
+                            {
+                                employeeID.ReportsTo = managerID.EmployeeId;
+                                context.SaveChanges();
+
+                                Console.WriteLine($"Updated: EmployeeId: {employeeID.EmployeeId} -> ManagerId: {managerID.EmployeeId}");
+                            }
+
+                            break;
+
                         case 6:
                             Console.WriteLine();
                             Console.ForegroundColor = ConsoleColor.Red;
@@ -771,23 +891,34 @@ namespace Northwind
                             Console.ResetColor();
                             Console.WriteLine();
 
-                            //var employeesSameTerritory =
-                            //                        from et1 in context.EmployeeTerritories
-                            //                        join et2 in context.EmployeeTerritories
-                            //                            on et1.TerritoryId equals et2.TerritoryId
-                            //                        join t in context.Territories
-                            //                            on et1.TerritoryId equals t.TerritoryId
-                            //                        join e1 in context.Employees
-                            //                            on et1.EmployeeId equals e1.EmployeeId
-                            //                        join e2 in context.Employees
-                            //                            on et2.EmployeeId equals e2.EmployeeId
-                            //                        where et1.EmployeeId < et2.EmployeeId
-                            //                        select new
-                            //                        {
-                            //                            Employee1 = e1.FirstName + " " + e1.LastName,
-                            //                            Employee2 = e2.FirstName + " " + e2.LastName,
-                            //                            TerritoryName = t.TerritoryDescription
-                            //                        };
+                            //var employeesSameTerritory =from et1 in context.EmployeeTerritories
+                            //                            join et2 in context.EmployeeTerritories
+                            //                                on et1.TerritoryId equals et2.TerritoryId
+                            //                            where et1.EmployeeId < et2.EmployeeId
+                            //                            select new
+                            //                            {
+                            //                                Employee1 = et1.Employee.FirstName + " " + et1.Employee.LastName,
+                            //                                Employee2 = et2.Employee.FirstName + " " + et2.Employee.LastName,
+                            //                                TerritoryName = et1.Territory.TerritoryDescription
+                            //                            };
+
+
+                            //Console.ForegroundColor = ConsoleColor.Yellow;
+                            //Console.WriteLine("----------------------------------------------------------------------------");
+                            //Console.ResetColor();
+                            //Console.WriteLine($"| {"Employee1",-6} | {"Employee2",-40} | {"TerritoryName",-12} |");
+                            //Console.ForegroundColor = ConsoleColor.Yellow;
+                            //Console.WriteLine("----------------------------------------------------------------------------");
+                            //Console.ResetColor();
+
+                            //foreach (var p in employeesSameTerritory)
+                            //{
+                            //    Console.WriteLine($"| {p.Employee1,-6} | {p.Employee2,-40} | {p.TerritoryName,-12} |");
+                            //}
+
+                            //Console.ForegroundColor = ConsoleColor.Yellow;
+                            //Console.WriteLine("----------------------------------------------------------------------------");
+                            //Console.ResetColor();
 
                             break;
 
@@ -1217,6 +1348,38 @@ namespace Northwind
 
 
 
+                            break;
+
+                        case 27:
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("27.\tShow the most profitable product (highest total sales revenue). Output: ProductID | ProductName | TotalRevenue");
+                            Console.ResetColor();
+                            Console.WriteLine();
+
+                            var profiteProduct = context.Products.Select(x => new
+                            {
+                                ProductId = x.ProductId,
+                                ProductName = x.ProductName,
+                                TotalRevenue = x.OrderDetails.Sum(x => x.UnitPrice * x.Quantity * (1 - (decimal)x.Discount))
+                            }).OrderByDescending(x=>x.TotalRevenue).Take(1);
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+                            Console.WriteLine($"| {"ProductId",-6} | {"ProductName",-40} | {"TotalRevenue",-12} |");
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
+
+                            foreach (var p in profiteProduct)
+                            {
+                                Console.WriteLine($"| {p.ProductId,-6} | {p.ProductName,-40} | {p.TotalRevenue,-12} |");
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("----------------------------------------------------------------------------");
+                            Console.ResetColor();
                             break;
                     }
 
